@@ -2,19 +2,19 @@ name: CI - Testes e Validação
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
     name: Testes Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         python-version: ["3.11"]
-    
+
     services:
       postgres:
         image: postgres:15
@@ -29,100 +29,100 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
-    
-    - name: Configurar Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-    
-    - name: Instalar dependências
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Verificar formatação com black
-      run: |
-        pip install black
-        black --check app/ tests/
-      continue-on-error: true
-    
-    - name: Lint com flake8
-      run: |
-        pip install flake8
-        flake8 app/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 app/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      continue-on-error: true
-    
-    - name: Executar testes com pytest
-      env:
-        DATABASE_URL: postgresql://books_user:books_pass@localhost:5432/books_db_test
-        SECRET_KEY: test-secret-key-for-ci
-        FLASK_ENV: testing
-      run: |
-        pytest tests/ -v --tb=short
-    
-    - name: Executar testes com coverage
-      env:
-        DATABASE_URL: postgresql://books_user:books_pass@localhost:5432/books_db_test
-        SECRET_KEY: test-secret-key-for-ci
-        FLASK_ENV: testing
-      run: |
-        pip install pytest-cov
-        pytest tests/ --cov=app --cov-report=xml --cov-report=term-missing
-    
-    - name: Upload coverage para Codecov (opcional)
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-      continue-on-error: true
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verificar formatação com black
+        run: |
+          pip install black
+          black --check app/ tests/
+        continue-on-error: true
+
+      - name: Lint com flake8
+        run: |
+          pip install flake8
+          flake8 app/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true
+
+      - name: Executar testes com pytest
+        env:
+          DATABASE_URL: postgresql://books_user:books_pass@localhost:5432/books_db_test
+          SECRET_KEY: test-secret-key-for-ci
+          FLASK_ENV: testing
+        run: |
+          pytest tests/ -v --tb=short
+
+      - name: Executar testes com coverage
+        env:
+          DATABASE_URL: postgresql://books_user:books_pass@localhost:5432/books_db_test
+          SECRET_KEY: test-secret-key-for-ci
+          FLASK_ENV: testing
+        run: |
+          pip install pytest-cov
+          pytest tests/ --cov=app --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage para Codecov (opcional)
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
 
   lint:
     name: Análise de Código
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
-    
-    - name: Configurar Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-    
-    - name: Instalar dependências de análise
-      run: |
-        python -m pip install --upgrade pip
-        pip install mypy pylint safety bandit
-    
-    - name: Verificar tipos com mypy
-      run: mypy app/ --ignore-missing-imports
-      continue-on-error: true
-    
-    - name: Verificar vulnerabilidades com safety
-      run: safety check --json
-      continue-on-error: true
-    
-    - name: Análise de segurança com bandit
-      run: bandit -r app/ -f json
-      continue-on-error: true
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências de análise
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy pylint safety bandit
+
+      - name: Verificar tipos com mypy
+        run: mypy app/ --ignore-missing-imports
+        continue-on-error: true
+
+      - name: Verificar vulnerabilidades com safety
+        run: safety check --json
+        continue-on-error: true
+
+      - name: Análise de segurança com bandit
+        run: bandit -r app/ -f json
+        continue-on-error: true
 
   docker:
     name: Build Docker
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout código
-      uses: actions/checkout@v4
-    
-    - name: Build imagem Docker
-      run: docker build -t flask-books-api:test .
-    
-    - name: Verificar imagem
-      run: docker images | grep flask-books-api
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Build imagem Docker
+        run: docker build -t flask-books-api:test .
+
+      - name: Verificar imagem
+        run: docker images | grep flask-books-api

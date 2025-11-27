@@ -1,11 +1,19 @@
-from flask import Flask
+import logging
+
+from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.exceptions import HTTPException
 
 from app.utils.wait_for_db import wait_for_db
 
 db = SQLAlchemy()
 migrate = Migrate()
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 
 def create_app(config_object=None):
@@ -43,5 +51,25 @@ def create_app(config_object=None):
 
         # Cria tabelas se não existirem (para ambientes sem migrações)
         db.create_all()
+
+    # Registrar error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({"error": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return jsonify({"error": "Internal server error"}), 500
+
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(error):
+        return jsonify({"error": error.description}), error.code
+
+    @app.errorhandler(Exception)
+    def handle_exception(error):
+        app.logger.error(f"Unhandled exception: {str(error)}")
+        db.session.rollback()
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
     return app

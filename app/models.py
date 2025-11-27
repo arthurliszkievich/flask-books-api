@@ -33,3 +33,27 @@ class Book(db.Model):
 
     def __repr__(self):
         return f"<Book {self.title} by {self.author}>"
+
+    @classmethod
+    def find_by_isbn(cls, isbn: str):
+        """Busca livro por ISBN"""
+        return cls.query.filter_by(isbn=isbn).first()
+
+    @classmethod
+    def search(cls, query: str):
+        """Busca livros por título ou autor"""
+        search_pattern = f"%{query}%"
+        return cls.query.filter(
+            db.or_(cls.title.ilike(search_pattern), cls.author.ilike(search_pattern))
+        ).all()
+
+    @classmethod
+    def get_by_genre(cls, genre: str):
+        """Busca livros por gênero"""
+        return cls.query.filter_by(genre=genre).all()
+
+    def update_from_dict(self, data: dict):
+        """Atualiza livro a partir de dicionário"""
+        for key, value in data.items():
+            if hasattr(self, key) and key not in ["id", "created_at"]:
+                setattr(self, key, value)
