@@ -19,7 +19,14 @@ instance/
 # Pytest cache
 .pytest_cache/
 
-# Migrations (opcional: mantenha migrations/ se for para repo)
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Migrations (descomente se NÃO quiser versionar)
 # migrations/
 
 # Mac/Windows
