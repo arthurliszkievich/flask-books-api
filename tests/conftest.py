@@ -3,16 +3,18 @@ import pytest
 from app import create_app, db
 
 
+class TestConfig:
+    """Configuração de teste."""
+
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
 @pytest.fixture
 def app():
     """Cria uma instância da aplicação para testes."""
-    app = create_app()
-    app.config.update(
-        {
-            "TESTING": True,
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",  # Banco em memória para testes
-        }
-    )
+    app = create_app(TestConfig)
 
     with app.app_context():
         db.create_all()
