@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -11,8 +11,6 @@ services:
       - .env
     depends_on:
       - db
-    # Opções de comando: use python run.py (se run.py fizer app.run(host='0.0.0.0'))
-    # ou use flask run se FLASK_APP estiver configurado no .env
     command: python run.py
 
   db:
@@ -21,7 +19,6 @@ services:
     env_file:
       - .env
     environment:
-      # Estes valores serão lidos do .env (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
